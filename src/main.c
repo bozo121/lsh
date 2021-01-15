@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 /*
   Function Declarations for builtin shell commands:
@@ -23,6 +25,11 @@
 int lsh_cd(char **args);
 int lsh_help(char **args);
 int lsh_exit(char **args);
+int lsh_pwd();
+int lsh_mkdir(char **args);
+int lsh_rmdir(char **args);
+int lsh_rm(char **args);
+int lsh_touch(char **args);
 
 /*
   List of builtin commands, followed by their corresponding functions.
@@ -30,13 +37,23 @@ int lsh_exit(char **args);
 char *builtin_str[] = {
   "cd",
   "help",
-  "exit"
+  "exit",
+  "pwd",
+  "mkdir",
+  "rmdir",
+  "rm",
+  "touch"
 };
 
 int (*builtin_func[]) (char **) = {
   &lsh_cd,
   &lsh_help,
-  &lsh_exit
+  &lsh_exit,
+  &lsh_pwd,
+  &lsh_mkdir,
+  &lsh_rmdir,
+  &lsh_rm,
+  &lsh_touch
 };
 
 int lsh_num_builtins() {
@@ -92,6 +109,78 @@ int lsh_help(char **args)
 int lsh_exit(char **args)
 {
   return 0;
+}
+
+int lsh_pwd()
+{
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        printf("pwd output: %s\n", cwd);
+    } else {
+        perror("lsh");
+    }
+    return 1;
+}
+
+int lsh_mkdir(char **args)
+{
+    if (!args[1]) {
+        fprintf(stderr, "mkdir output: lsh: expected argument to \"mkdir\"\n");
+    } else {
+        int i = 1;
+        while (args[i] != NULL) {
+            if (mkdir(args[i++], 0774) != 0) {
+                perror("lsh");
+            }
+        }
+    }
+    return 1;
+}
+
+
+int lsh_rmdir(char **args)
+{
+    if (!args[1]) {
+        fprintf(stderr, "rmdir output: lsh: expected argument to \"rmdir\"\n");
+    } else {
+        int i = 1;
+        while (args[i] != NULL) {
+            if (rmdir(args[i++]) != 0) {
+                perror("lsh");
+            }
+        }
+    }
+    return 1;
+}
+
+int lsh_rm(char **args)
+{
+    if (!args[1]) {
+        fprintf(stderr, "rm output: lsh: expected argument to \"rm\"\n");
+    } else {
+        int i = 1;
+        while (args[i] != NULL) {
+            if (remove(args[i++]) != 0) {
+                perror("lsh");
+            }
+        }
+    }
+    return 1;
+}
+
+int lsh_touch(char **args)
+{
+    if (!args[1]) {
+        fprintf(stderr, "touch output: lsh: expected argument to \"touch\"\n");
+    } else {
+        int i = 1;
+        while (args[i] != NULL) {
+           if (open(args[i++], 0774) == -1) {
+                perror("lsh");
+            }
+        }
+    }
+    return 1;
 }
 
 /**
